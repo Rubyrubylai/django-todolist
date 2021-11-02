@@ -8,14 +8,29 @@ def say_hello(request):
 
 def index(request, id):
     ls = ToDoList.objects.get(id=id)
-    return render(request, "main/list.html", {"ls": ls })
+
+    if request.method == "POST":
+        if request.POST.get("save"):
+            for item in ls.item_set.all():
+                if request.POST.get("c" + str(item.id)) == "clicked":
+                    item.complete = True
+                else:
+                    item.complete = False
+                item.save()
+        elif request.POST.get("newItem"):
+            txt = request.POST.get("new")
+            if len(txt) > 2:
+                ls.item_set.create(text=txt, complete=False)
+            else:
+                print("invalid input length")
+
+    return render(request, "main/list.html", {"ls": ls})
 
 def home(request):
     return render(request, "main/home.html", {"name": "test"})
 
 def create(request):
-    print(request)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CreateNewList(request.POST)
         if form.is_valid():
             n = form.cleaned_data["name"]
